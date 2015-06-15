@@ -37,6 +37,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'app',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -55,11 +56,14 @@ ROOT_URLCONF = 'chat_realtime.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': ["templates"],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                'app.processors.get_all_users', 
+                #'app.processors.get_chat_messages',
                 'django.template.context_processors.debug',
+                'django.core.context_processors.static',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
@@ -67,6 +71,8 @@ TEMPLATES = [
         },
     },
 ]
+
+
 
 WSGI_APPLICATION = 'chat_realtime.wsgi.application'
 
@@ -100,3 +106,22 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
 
 STATIC_URL = '/static/'
+
+STATIC_ROOT = 'C:/inetpub/wwwroot/chat_realtime/app/static/'
+
+STATIC_PATH = os.path.join(BASE_DIR,'static')
+
+
+STATICFILES_DIRS = (
+    STATIC_PATH,
+)
+
+STATICFILES_FINDERS = (
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    #'dajaxice.finders.DajaxiceFinder',
+    #'django.contrib.staticfiles.finders.DefaultStorageFinder',
+)
+
+
+
