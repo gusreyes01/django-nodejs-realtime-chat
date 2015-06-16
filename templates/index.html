@@ -1356,49 +1356,25 @@
 	
 	
 	<!-- Chat Histories -->
-	<ul class="chat-history" id="sample_history">
-		<li>
-			<span class="user">Art Ramadani</span>
-			<p>Are you here?</p>
-			<span class="time">09:00</span>
-		</li>
-	
-		<li class="opponent">
-			<span class="user">Catherine J. Watkins</span>
-			<p>This message is pre-queued.</p>
-			<span class="time">09:25</span>
-		</li>
-	
-		<li class="opponent">
-			<span class="user">Catherine J. Watkins</span>
-			<p>Whohoo!</p>
-			<span class="time">09:26</span>
-		</li>
-	
-		<li class="opponent unread">
-			<span class="user">Catherine J. Watkins</span>
-			<p>Do you like it?</p>
-			<span class="time">09:27</span>
-		</li>
-	</ul>
-	
-	
-	
-	
-	<!-- Chat Histories -->
-	<ul class="chat-history" id="sample_history_2">
-		<li class="opponent unread">
-			<span class="user">Daniel A. Pena</span>
-			<p>I am going out.</p>
-			<span class="time">08:21</span>
-		</li>
-	
-		<li class="opponent unread">
-			<span class="user">Daniel A. Pena</span>
-			<p>Call me when you see this message.</p>
-			<span class="time">08:27</span>
-		</li>
-	</ul>
+
+  {% for key, values in messages_by_user.items %}
+    <ul class="chat-history" id="{{key}}-hist">
+        {% for val in values%}  
+        	<!-- val.3 - Boolean Leido , val.4  - Boolean Propio -->
+        	<li class="opponent {% if val.3 or val.4 %}read{%else%}unread{% endif %}">
+        	{% for v in val %}
+        		{%if forloop.counter = 1 %}
+        		<span class="user">{{v}}</span>
+        		{% elif forloop.counter = 2 %}
+        		<p>{{v}}</p>
+        		{% elif forloop.counter = 3 %}
+        		<span class="time">{{v}}</span>
+        		{%endif%}
+        	{% endfor %}
+        	</li>
+        {% endfor %}
+    </ul>
+    {% endfor %}
 
 	
 </div>
@@ -1428,7 +1404,7 @@
 	<script type="text/javascript">
 	var data = {{ users_json|safe }};  
 	var current_user_id = {{user.id}};
-	
+
 	// Conexión a Socket.io
 
 	var socket = io.connect('localhost:4000', { query: "user_id={{user.id}}&sessionid={{request.session.session_key}}" });

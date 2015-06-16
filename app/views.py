@@ -24,7 +24,7 @@ def socketio_emit(data):
 def node_api(request):
     try:
     	msg = {}
-    	
+
         #Toma Usuario desde sessionid
         session = Session.objects.get(session_key=request.POST.get('sessionid'))
         user_id = session.get_decoded().get('_auth_user_id')
@@ -41,7 +41,7 @@ def node_api(request):
         data = simplejson.dumps(msg)
 
         #Crear mensaje
-        Mensaje.objects.create(envia=user,recibe=user_to,mensaje=message,leido=1)
+        Mensaje.objects.create(envia=user,recibe=user_to,mensaje=message,leido=0)
 
         #LLama a emit
         socketio_emit(data)

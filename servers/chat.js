@@ -25,16 +25,18 @@ sub.subscribe('chat');
  
 // Antes de 1.0
 //Configure socket.io to store cookie set by Django
-// io.configure(function(){
-//     io.set('authorization', function(data, accept){
-//         if(data.headers.cookie){
-//             data.cookie = cookie_reader.parse(data.headers.cookie);
-//             return accept(null, true);
-//         }
-//         return accept('error', false);
-//     });
-//     io.set('log level', 1);
-// });
+/*
+io.configure(function(){
+    io.set('authorization', function(data, accept){
+        if(data.headers.cookie){
+            data.cookie = cookie_reader.parse(data.headers.cookie);
+            return accept(null, true);
+        }
+        return accept('error', false);
+    });
+    io.set('log level', 1);
+});
+*/
 
 var sockets = {};
 var users = {};
@@ -85,7 +87,7 @@ var handshakeData;
 
 io.sockets.on('connection', function (socket) {
 
-var clients = findClientsSocket(null, '/') ;
+// var clients = findClientsSocket(null, '/') ;
     
     // console.log(connectCounter);
 
@@ -138,7 +140,7 @@ socket.on('disconnect', function() {
 });
 
 
-
+/*
 function findClientsSocket(roomId, namespace) {
     var res = [], ns = io.of(namespace ||"/");    // the default namespace is "/"
 
@@ -156,3 +158,4 @@ function findClientsSocket(roomId, namespace) {
     }
     return res;
 }
+*/

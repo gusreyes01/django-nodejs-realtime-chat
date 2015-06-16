@@ -61,7 +61,7 @@ TEMPLATES = [
         'OPTIONS': {
             'context_processors': [
                 'app.processors.get_all_users', 
-                #'app.processors.get_chat_messages',
+                'app.processors.get_chat_messages',
                 'django.template.context_processors.debug',
                 'django.core.context_processors.static',
                 'django.template.context_processors.request',
