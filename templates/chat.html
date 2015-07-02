@@ -1,0 +1,249 @@
+{% load staticfiles %}
+
+<html>
+<style>
+html,body{
+    width:100%;
+    height:100%;
+}
+
+body{
+    position:relative;
+}
+
+#wrapper{
+    position:absolute;
+    top:0;
+    bottom:0;
+    left:0;
+    right:0;
+    border:1px solid #333;      
+}
+
+#upperPanel{
+    position: absolute;
+    top:0;
+    left:0;
+    right:0;
+    bottom:100px;
+}
+
+#chat_box{
+    position: absolute;
+    top:0;
+    bottom:0;
+    left:0;
+    right:200px; 
+    background:#666;  
+    overflow:auto;    
+}
+
+#chat{
+    position: absolute;
+    top:0;
+    bottom:0;
+    width:200px;
+    right:0; 
+    background:#999; 
+    overflow:auto;   
+}
+
+#chat ul{
+    text-align:right;
+}
+
+#bottomPanel{
+    height: 100px;
+    background:#EEE;
+    position:absolute;
+    bottom:0px;
+    left:0px;
+    right:0px;
+}
+
+#bottomPanel textarea{
+    position:absolute;
+    top:10px;
+    bottom:10px;
+    left:10px;
+    right:120px; 
+    resize: none;
+}
+
+#bottomPanel input[type=submit]{
+    position:absolute;
+    top:10px;
+    bottom:10px;
+     right:10px;
+    width:100px;
+}
+    
+
+</style>
+
+
+<div id="wrapper">
+    <div id="upperPanel">
+        <div id="chat_box">
+            <ul>
+			  {% for key, values in messages_by_user.items %}
+			    <ul class="chat-history" id="{{key}}-hist" style="display: none;">
+			        {% for val in values%}  
+			        	<!-- val.3 - Boolean Leido , val.4  - Boolean Propio -->
+			        	<li class="opponent {% if val.3 or val.4 %}read{%else%}unread{% endif %}">
+			        	{% for v in val %}
+			        		{%if forloop.counter = 1 %}
+			        		<span class="user">{{v}}</span>
+			        		{% elif forloop.counter = 2 %}
+			        		<p>{{v}}</p>
+			        		{% elif forloop.counter = 3 %}
+			        		<span class="time">{{v}}</span>
+			        		{%endif%}
+			        	{% endfor %}
+			        	</li>
+			        {% endfor %}
+			    </ul>
+			    {% endfor %}
+            </ul>
+        </div>
+        <div id="chat">
+            <ul>
+				{% for u in users %}
+				<li>
+				<a href="#" id="{{u.id}}" data-conversation-history="#{{u.id}}-hist" class="chat_user user_{{u.id}}">
+					<span class="user-status is-offline user_{{u.id}}"></span> 
+						<em>{{u.first_name}} {{u.last_name}}</em>
+					</a>
+				</li>
+				{% endfor %}
+
+			</ul>
+        </div>
+    </div>
+    <div id="bottomPanel">
+        <textarea id="sendie_text" style="width:800px">
+        </textarea>
+<!--         <input id="sendie" type="submit" value="send" />
+ -->    </div>
+</div>
+</html>
+
+  <script src="{% static 'assets/js/jquery-1.11.0.min.js' %}"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+  <script src="{%static 'assets/js/socket.io.js' %}"></script>
+
+
+<script type="text/javascript">
+var data = {{ users_json|safe }};  
+var current_user_id = {{user.id}};
+// Conexión a Socket.io
+
+var socket = io.connect('localhost:4000', { query: "user_id={{user.id}}&sessionid={{request.session.session_key}}" });
+	var opts = {
+			"closeButton": true,
+			"debug": false,
+			"positionClass": "toast-top-right",
+			"toastClass": "black",
+			"onclick": null,
+			"showDuration": "300",
+			"hideDuration": "1000",
+			"timeOut": "5000",
+			"extendedTimeOut": "1000",
+			"showEasing": "swing",
+			"hideEasing": "linear",
+			"showMethod": "fadeIn",
+			"hideMethod": "fadeOut"
+		};
+
+socket.on('on_connect', function (users) {
+  // socket connected
+  console.log(users);
+
+	for (var x in users) {
+		// Cambia estatus de usuario
+		$( ".user_"+users[x]).switchClass( "is-offline", "is-online", 1000, "easeInOutQuad" );
+	}
+
+  
+  console.log("Estás conectado");
+});
+
+
+
+//Recibe evento de chat
+socket.on('chat_receive', function(message) {
+	$('.chat-history').hide();
+	selected_user_id = message.send_user_id;
+  	$('#'+selected_user_id+'-hist').show();
+
+	var sender_name = message.send_user_first_name +" "+ message.send_user_last_name;
+	toastr.success(message.message,sender_name+" dice: ", opts);	
+	$( "#"+selected_user_id+"-hist").append("<li><span class='user'>"+sender_name+"</span><p>"+message.message+"</p><span class='time'>"+new Date()+"</span></li>");
+	});
+
+// Recibe cambio de estatus
+socket.on('status_change', function(message) {
+	var element = $( ".user_"+message.user_id );
+	if(message.status == "is-online"){
+		element.switchClass( "is-offline", "is-online", 1000, "easeInOutQuad" );
+		toastr.success("Se ha conectado "+element.text() ,'', opts);	 
+		console.log(message.status);
+	}else{
+		element.switchClass( "is-online", "is-offline", 1000, "easeInOutQuad" );
+		console.log(message.status);
+		toastr.success("Se ha desconectado "+element.text(),'', opts);	
+	}
+	    
+	});
+
+
+
+
+
+
+</script>
+
+
+
+<script>
+var selected_user_id = 0;
+$( ".chat_user" ).click(function() {
+  
+  $('.chat-history').hide();
+  $('#'+this.id+'-hist').show();
+  selected_user_id = this.id;
+});
+
+
+
+  $(function() {
+  
+
+     // watch textarea for release of key press
+     $('#sendie_text').keypress(function(e) {  
+                
+      if (e.keyCode == 13) {
+          var msg = $('#sendie_text').val();
+          $('#sendie_text').val('');
+
+
+			var bounceMessage = {};
+			var id = selected_user_id;
+			bounceMessage.UserToId = id;
+			bounceMessage.Message = msg.replace( /<.*?>/g, '' );
+		    socket.emit('send_message', bounceMessage, function(data) {
+		            console.log(bounceMessage.Message);
+		        });
+        console.log(id);
+		    $( "#"+id+"-hist").append("<li><span class='user'>{{user.first_name}} {{user.last_name}}</span><p>"+msg+"</p><span class='time'>"+new Date()+"</span></li>");
+
+
+      }
+
+     });
+  });
+</script>
+
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.0.1/css/toastr.css" rel="stylesheet"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.0.1/js/toastr.js"></script>
+  

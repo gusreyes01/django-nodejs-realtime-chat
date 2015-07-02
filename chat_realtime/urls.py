@@ -14,6 +14,7 @@ urlpatterns = [
     url(r'^accounts/logout/$', 'django.contrib.auth.views.logout'),
 
     url(r'^node_api$', 'app.views.node_api', name='node_api'),
+    url(r'^chat$', 'app.views.chat', name='chat'),
 
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 

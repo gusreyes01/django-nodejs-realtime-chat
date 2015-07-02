@@ -14,6 +14,11 @@ from django.http import HttpResponse, HttpResponseServerError
 def index(request):
     return render_to_response('index.html', context_instance=RequestContext(request))
 
+@login_required
+def chat(request):
+    return render_to_response('chat.html', context_instance=RequestContext(request))
+
+
 #Instanciar redis y enviar mensaje a nodejs
 def socketio_emit(data):
     r = redis.StrictRedis(host='127.0.0.1', port=6379, db=0)

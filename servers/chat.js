@@ -25,18 +25,16 @@ sub.subscribe('chat');
  
 // Antes de 1.0
 //Configure socket.io to store cookie set by Django
-/*
-io.configure(function(){
-    io.set('authorization', function(data, accept){
-        if(data.headers.cookie){
-            data.cookie = cookie_reader.parse(data.headers.cookie);
-            return accept(null, true);
-        }
-        return accept('error', false);
-    });
-    io.set('log level', 1);
-});
-*/
+// io.configure(function(){
+//     io.set('authorization', function(data, accept){
+//         if(data.headers.cookie){
+//             data.cookie = cookie_reader.parse(data.headers.cookie);
+//             return accept(null, true);
+//         }
+//         return accept('error', false);
+//     });
+//     io.set('log level', 1);
+// });
 
 var sockets = {};
 var users = {};
@@ -47,11 +45,32 @@ var handshakeData;
  io.use(function(socket, next) {
   var handshakeData = socket.request;
     if(handshakeData.headers.cookie){
-        // if()
         handshakeData.cookie = cookie_reader.parse(handshakeData.headers.cookie);
         connectCounter++;
         var user_id = socket.handshake.query.user_id;
-        users[user_id] = socket.id;
+
+        var bandera_con = false;
+        for(var x in users) {
+            if(users[x] === user_id) {
+                // El usuario tiene otra pestaña abierta por lo que activamos la bandera para no emitir mensaje
+                bandera_con = true;
+                break;
+            }
+        }
+
+        if(!(bandera_con)){
+            // Cambiamos a estatus online en conexion de usuario
+            var user_status = {};
+            user_status.user_id = user_id;
+            user_status.status = "is-online";
+            io.emit('status_change', user_status);            
+        }
+
+        users[socket.id] = user_id;
+        console.log(users);
+
+        socket.emit("on_connect", users);
+
         next();
     }else{
         console.log("Not authorized",handshakeData.headers.cookie );
@@ -70,24 +89,24 @@ var handshakeData;
         var json = JSON.parse(message);
         var rec_user_id = json.rec_user_id;
         // socket.send(message);
-        if (rec_user_id){
-            // Obtenemos el socket id de la persona a quien va dirigido
-            socketid = users[rec_user_id];
-            // Usamos emit en lugar de send por ser mas completo  http://stackoverflow.com/questions/11498508/socket-emit-vs-socket-send
 
-            io.to(socketid).emit('chat_receive', json);
-            var clients = Object.keys(io.engine.clients);
-        }else{
-            //Para todos los usuarios
-            io.emit('message_receive', json.message);
+        for (var x in users) {
+            if (users[x] === String(rec_user_id)) {
+
+                // Obtenemos el socket id de la persona a quien va dirigido
+                socketid = x;
+                // Usamos emit en lugar de send por ser mas completo  http://stackoverflow.com/questions/11498508/socket-emit-vs-socket-send
+                io.to(socketid).emit('chat_receive', json);
+                var clients = Object.keys(io.engine.clients);
+
+            }
         }
-
 
     });
 
 io.sockets.on('connection', function (socket) {
 
-// var clients = findClientsSocket(null, '/') ;
+var clients = findClientsSocket(null, '/') ;
     
     // console.log(connectCounter);
 
@@ -131,16 +150,46 @@ io.sockets.on('connection', function (socket) {
 
     });
 
-socket.on('disconnect', function() {
-    connectCounter--;
-    socket.removeAllListeners("message");
-} );
+    // Se llama al desconectar el socket
+    socket.on('disconnect', function() {
+        setTimeout(function() {
 
+            var user_id = socket.handshake.query.user_id;
+            delete users[socket.id];
+
+            var bandera_disc = false;
+
+            for (var x in users) {
+                if (users[x] === user_id) {
+                    // El usuario tiene otra pestaña abierta por lo que activamos la bandera para no emitir mensaje
+                    bandera_disc = true;
+                    break;
+                }
+            }
+
+            if (!(bandera_disc)) {
+                // Cambiamos a estatus offline en desconexion de usuario
+                var user_status = {};
+                user_status.user_id = user_id;
+                user_status.status = "is-offline";
+                io.emit('status_change', user_status);
+                connectCounter--;
+            }
+
+            //console.log(users);
+
+            socket.removeAllListeners("message");
+
+            }, 4000);
+
+        });
+
+    
 
 });
 
 
-/*
+
 function findClientsSocket(roomId, namespace) {
     var res = [], ns = io.of(namespace ||"/");    // the default namespace is "/"
 
@@ -158,4 +207,3 @@ function findClientsSocket(roomId, namespace) {
     }
     return res;
 }
-*/
