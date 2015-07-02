@@ -54,3 +54,8 @@ def node_api(request):
         return HttpResponse("Everything worked :)")
     except Exception, e:
         return HttpResponseServerError(str(e))
+
+def chat_leido(request,user_leido):
+    mensajes = Mensaje.objects.filter(recibe_id=request.user,envia_id=user_leido,leido=False).order_by('-date')
+    mensajes.update(leido=True)
+    return HttpResponse('')

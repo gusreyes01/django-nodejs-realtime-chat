@@ -15,6 +15,7 @@ urlpatterns = [
 
     url(r'^node_api$', 'app.views.node_api', name='node_api'),
     url(r'^chat$', 'app.views.chat', name='chat'),
+    url(r'^chat_leido/(\d+)/$', 'app.views.chat_leido', name='chat_leido'),
 
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 

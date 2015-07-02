@@ -242,6 +242,23 @@ $( ".chat_user" ).click(function() {
 
      });
   });
+
+
+      $('.chat_user').click(function() {
+
+    $.ajax({
+      url: "/chat_leido/"+this.id,
+      beforeSend: function( xhr ) {
+        xhr.overrideMimeType( "text/plain; charset=x-user-defined" );
+      }
+    }).done(function( data ) {
+        if ( console && console.log ) {
+          console.log( "Sample of data:", data.slice( 0, 100 ) );
+        }
+      });
+
+      });
+
 </script>
 
   <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.0.1/css/toastr.css" rel="stylesheet"/>
